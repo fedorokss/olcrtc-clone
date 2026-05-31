@@ -43,13 +43,13 @@ if ! command -v git &> /dev/null || ! command -v go &> /dev/null || ! command -v
         $SUDO apt update
         $SUDO apt install -y git make ffmpeg curl wget jq
         # Install modern Go if not present or too old
-        if ! command -v go &> /dev/null || ! go version | grep -q 'go1.2[6-9]'; then
-            echo "[*] Installing Go 1.26.0..."
-            wget -q https://go.dev/dl/go1.26.0.linux-amd64.tar.gz
-            $SUDO rm -rf /usr/local/go
-            $SUDO tar -C /usr/local -xzf go1.26.0.linux-amd64.tar.gz
-            rm go1.26.0.linux-amd64.tar.gz
-            export PATH=$PATH:/usr/local/go/bin
+        if ! command -v go &> /dev/null || ! go version | grep -q -E 'go1\.2[6-9]'; then
+            echo "[*] Installing Go 1.26..."
+            $SUDO apt install -y golang-go
+            $SUDO go install golang.org/dl/go1.26.0@latest
+            $SUDO ~/go/bin/go1.26.0 download
+            $SUDO cp ~/go/bin/go1.26.0 /usr/local/bin/go
+            export PATH=$PATH:/usr/local/bin
         fi
     elif command -v dnf &> /dev/null; then
         echo "[*] Detected dnf (Fedora/RHEL)"
@@ -67,6 +67,8 @@ fi
 if ! command -v go &> /dev/null; then
     if [ -x /usr/local/go/bin/go ]; then
         export PATH=$PATH:/usr/local/go/bin
+    elif [ -x /usr/local/bin/go ]; then
+        export PATH=$PATH:/usr/local/bin
     else
         echo "[X] Go not found."
         exit 1
@@ -303,7 +305,7 @@ git clone --depth 1 --recurse-submodules --branch "$BRANCH" "$REPO_URL" "$WORK_D
 
 echo "[*] Building OlcRTC..."
 cd "$WORK_DIR"
-mage build
+~/go/bin/mage build
 
 OS=$(uname -s | tr '[:upper:]' '[:lower:]')
 ARCH=$(uname -m)
