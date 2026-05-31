@@ -7,7 +7,6 @@ import (
 	"time"
 
 	"github.com/fedorokss/olcrtc-clone/internal/auth"
-	lksdk "github.com/livekit/server-sdk-go/v2"
 )
 
 type Provider struct{}
@@ -24,7 +23,6 @@ func (Provider) Issue(ctx context.Context, cfg auth.Config) (auth.Credentials, e
 
 	var accessToken string
 	var err error
-
 	if cfg.WBToken != "" {
 		accessToken = cfg.WBToken
 	} else {
@@ -56,7 +54,6 @@ func (Provider) Issue(ctx context.Context, cfg auth.Config) (auth.Credentials, e
 }
 
 func (Provider) CreateRoom(ctx context.Context, cfg auth.Config) (string, string, error) {
-	// Let guests create rooms too, use empty token if none provided
 	return createRoom(ctx, cfg.WBToken, cfg.WBCookie, cfg.Name)
 }
 
@@ -73,51 +70,24 @@ func (Provider) KeepAlive(ctx context.Context, cfg auth.Config) {
 	refresh := time.NewTicker(2 * time.Minute)
 	defer refresh.Stop()
 
-	connect := func() *lksdk.Room {
-		// KeepAlive logic using the token
+	keepalive := func() {
 		if err := joinRoomKeeper(ctx, cfg.WBToken, cfg.WBCookie, cfg.RoomURL); err != nil {
 			log.Printf("Keeper: join error: %v", err)
 		}
 		warmupKeeper(ctx, cfg.WBToken, cfg.WBCookie, cfg.RoomURL)
-
-		tok, srv, err := getTokenKeeper(ctx, cfg.WBToken, cfg.WBCookie, cfg.RoomURL, name)
-		if err != nil {
+		if _, _, err := getTokenKeeper(ctx, cfg.WBToken, cfg.WBCookie, cfg.RoomURL, name); err != nil {
 			log.Printf("Keeper: getToken error: %v", err)
-			return nil
 		}
-
-		if srv == "" {
-			srv = defaultWSURL
-		}
-
-		cb := &lksdk.RoomCallback{
-			OnDisconnected: func() { log.Println("Keeper: disconnected") },
-			OnReconnected:  func() { log.Println("Keeper: reconnected") },
-		}
-
-		room, err := lksdk.ConnectToRoomWithToken(srv, tok, cb, lksdk.WithAutoSubscribe(false))
-		if err != nil {
-			log.Printf("Keeper: livekit connect error: %v", err)
-			return nil
-		}
-		log.Printf("Keeper: connected to %s as %s", room.Name(), room.LocalParticipant.Identity())
-		return room
 	}
 
-	room := connect()
+	keepalive()
 	for {
 		select {
 		case <-ctx.Done():
 			log.Println("Keeper: shutting down")
-			if room != nil {
-				room.Disconnect()
-			}
 			return
 		case <-refresh.C:
-			if room != nil {
-				room.Disconnect()
-			}
-			room = connect()
+			keepalive()
 		}
 	}
 }
