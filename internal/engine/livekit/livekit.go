@@ -11,7 +11,6 @@ import (
 
 	"github.com/fedorokss/olcrtc-clone/internal/engine"
 	"github.com/fedorokss/olcrtc-clone/internal/logger"
-	protoLogger "github.com/livekit/protocol/logger"
 	lksdk "github.com/livekit/server-sdk-go/v2"
 	"github.com/pion/webrtc/v4"
 )
@@ -99,8 +98,7 @@ func connectSDKRoom(url, token string, callback *lksdk.RoomCallback) (roomHandle
 		url,
 		token,
 		callback,
-		lksdk.WithAutoSubscribe(true),
-		lksdk.WithLogger(protoLogger.GetDiscardLogger()),
+		lksdk.WithAutoSubscribe(false),
 	)
 	if err != nil {
 		return nil, fmt.Errorf("connect to livekit room: %w", err)
@@ -189,6 +187,11 @@ func (s *Session) connectSession(_ context.Context) error {
 				s.videoTrackMu.RUnlock()
 				if cb != nil {
 					cb(track, nil)
+				}
+			},
+			OnTrackPublished: func(publication *lksdk.RemoteTrackPublication, _ *lksdk.RemoteParticipant) {
+				if publication.Kind() == lksdk.TrackKindVideo {
+					_ = publication.SetSubscribed(true)
 				}
 			},
 		},
