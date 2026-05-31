@@ -1,0 +1,33 @@
+package videochannel
+
+import (
+	"fmt"
+
+	"github.com/openlibrecommunity/olcrtc/internal/transport"
+)
+
+type Options struct {
+	Width      int
+	Height     int
+	FPS        int
+	Bitrate    string
+	HW         string
+	QRSize     int
+	QRRecovery string
+	Codec      string
+	TileModule int
+	TileRS     int
+}
+
+func (Options) TransportOptions() {}
+
+func optionsFrom(cfg transport.Config) (Options, error) {
+	if cfg.Options == nil {
+		return Options{}, nil
+	}
+	opts, ok := cfg.Options.(Options)
+	if !ok {
+		return Options{}, fmt.Errorf("%w: videochannel: got %T", transport.ErrOptionsTypeMismatch, cfg.Options)
+	}
+	return opts, nil
+}
