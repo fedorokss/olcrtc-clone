@@ -34,11 +34,11 @@ func (Provider) Issue(ctx context.Context, cfg auth.Config) (auth.Credentials, e
 		}
 	}
 
-	if err := joinRoom(ctx, accessToken, roomID); err != nil {
+	if err := joinRoom(ctx, accessToken, cfg.WBCookie, roomID); err != nil {
 		return auth.Credentials{}, fmt.Errorf("join room: %w", err)
 	}
 
-	tok, err := getToken(ctx, accessToken, roomID, cfg.Name)
+	tok, err := getToken(ctx, accessToken, cfg.WBCookie, roomID, cfg.Name)
 	if err != nil {
 		return auth.Credentials{}, fmt.Errorf("get token: %w", err)
 	}

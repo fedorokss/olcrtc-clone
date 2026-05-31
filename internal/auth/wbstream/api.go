@@ -84,7 +84,7 @@ func registerGuest(ctx context.Context, displayName string) (string, error) {
 	return res.AccessToken, nil
 }
 
-func joinRoom(ctx context.Context, accessToken, roomID string) error {
+func joinRoom(ctx context.Context, accessToken, cookie, roomID string) error {
 	u := apiBase + "/api-room/api/v1/room/" + roomID + "/join"
 	req, err := http.NewRequestWithContext(ctx, http.MethodPost, u, bytes.NewReader(emptyJSONBody))
 	if err != nil {
@@ -92,6 +92,9 @@ func joinRoom(ctx context.Context, accessToken, roomID string) error {
 	}
 	req.Header.Set("Content-Type", "application/json")
 	req.Header.Set("Authorization", "Bearer "+accessToken)
+	if cookie != "" {
+		req.Header.Set("Cookie", cookie)
+	}
 	req.Header.Set("User-Agent", "Mozilla/5.0 (Linux x86_64)")
 
 	resp, err := sharedClient().Do(req)
@@ -106,7 +109,7 @@ func joinRoom(ctx context.Context, accessToken, roomID string) error {
 	return nil
 }
 
-func getToken(ctx context.Context, accessToken, roomID, displayName string) (tokenResponse, error) {
+func getToken(ctx context.Context, accessToken, cookie, roomID, displayName string) (tokenResponse, error) {
 	u := apiBase + "/api-room-manager/v2/room/" + roomID + "/connection-details"
 	req, err := http.NewRequestWithContext(ctx, http.MethodGet, u, nil)
 	if err != nil {
@@ -117,6 +120,9 @@ func getToken(ctx context.Context, accessToken, roomID, displayName string) (tok
 		"displayName": {displayName},
 	}.Encode()
 	req.Header.Set("Authorization", "Bearer "+accessToken)
+	if cookie != "" {
+		req.Header.Set("Cookie", cookie)
+	}
 	req.Header.Set("User-Agent", "Mozilla/5.0 (Linux x86_64)")
 
 	resp, err := sharedClient().Do(req)

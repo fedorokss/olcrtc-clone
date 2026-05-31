@@ -27,6 +27,9 @@ type Config struct {
 	URL    string
 	Token  string
 
+	WBToken  string
+	WBCookie string
+
 	Name string
 
 	DNSServer string
@@ -65,6 +68,8 @@ func newWithAuth(ctx context.Context, cfg Config) (*Session, error) {
 		DNSServer: cfg.DNSServer,
 		ProxyAddr: cfg.ProxyAddr,
 		ProxyPort: cfg.ProxyPort,
+		WBToken:   cfg.WBToken,
+		WBCookie:  cfg.WBCookie,
 	}
 	creds, err := p.Issue(ctx, authCfg)
 	if err != nil {
