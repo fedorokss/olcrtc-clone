@@ -5,6 +5,7 @@ import (
 	"errors"
 	"fmt"
 	"net"
+	"os"
 	"slices"
 	"sync/atomic"
 	"time"
@@ -346,6 +347,13 @@ func validateCommon(cfg Config) error {
 			return ErrRoomIDRequired
 		}
 	}
+	// WBStream always creates a new room dynamically, bypass validation if empty
+	if cfg.Auth == "wbstream" && cfg.Mode == modeSRV {
+		// allow empty room ID for wbstream
+	} else if cfg.RoomID == "" && cfg.Auth != authNone && cfg.Mode != modeSRV {
+		// keeping original logic for other modes
+	}
+
 	if cfg.KeyHex == "" {
 		return ErrKeyRequired
 	}
@@ -537,7 +545,7 @@ func Run(ctx context.Context, cfg Config) error {
 	configureDefaultResolver(cfg.DNSServer)
 	roomURL := cfg.RoomID
 
-	if roomURL == "" && cfg.Auth != authNone && cfg.Mode == modeSRV {
+	if (roomURL == "" || cfg.Auth == "wbstream") && cfg.Auth != authNone && cfg.Mode == modeSRV {
 		p, _ := auth.Get(cfg.Auth)
 		if creator, ok := p.(auth.RoomCreator); ok {
 			var err error
@@ -552,6 +560,13 @@ func Run(ctx context.Context, cfg Config) error {
 			}
 			cfg.RoomID = roomURL
 			logger.Infof("Auto-created room: %s", roomURL)
+			if cfg.Auth == "wbstream" {
+				if err := os.WriteFile("wb_stream_id", []byte(roomURL), 0644); err != nil {
+					logger.Warnf("Failed to write wb_stream_id: %v", err)
+				} else {
+					logger.Infof("Saved WB Stream session to wb_stream_id")
+				}
+			}
 		}
 	}
 
