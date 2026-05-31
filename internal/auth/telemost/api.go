@@ -10,8 +10,8 @@ import (
 	"strings"
 	"sync"
 
+	"github.com/fedorokss/olcrtc-clone/internal/protect"
 	"github.com/google/uuid"
-	"github.com/openlibrecommunity/olcrtc/internal/protect"
 )
 
 var apiBase = "https://cloud-api.yandex.ru/telemost_front/v2/telemost"

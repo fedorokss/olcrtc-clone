@@ -6,14 +6,14 @@ import (
 	"fmt"
 	"sync"
 
-	"github.com/openlibrecommunity/olcrtc/internal/auth"
-	authJitsi "github.com/openlibrecommunity/olcrtc/internal/auth/jitsi"
-	authTelemost "github.com/openlibrecommunity/olcrtc/internal/auth/telemost"
-	authWBStream "github.com/openlibrecommunity/olcrtc/internal/auth/wbstream"
-	"github.com/openlibrecommunity/olcrtc/internal/engine"
-	_ "github.com/openlibrecommunity/olcrtc/internal/engine/goolom"
-	_ "github.com/openlibrecommunity/olcrtc/internal/engine/jitsi"
-	_ "github.com/openlibrecommunity/olcrtc/internal/engine/livekit"
+	"github.com/fedorokss/olcrtc-clone/internal/auth"
+	authJitsi "github.com/fedorokss/olcrtc-clone/internal/auth/jitsi"
+	authTelemost "github.com/fedorokss/olcrtc-clone/internal/auth/telemost"
+	authWBStream "github.com/fedorokss/olcrtc-clone/internal/auth/wbstream"
+	"github.com/fedorokss/olcrtc-clone/internal/engine"
+	_ "github.com/fedorokss/olcrtc-clone/internal/engine/goolom"
+	_ "github.com/fedorokss/olcrtc-clone/internal/engine/jitsi"
+	_ "github.com/fedorokss/olcrtc-clone/internal/engine/livekit"
 )
 
 var (

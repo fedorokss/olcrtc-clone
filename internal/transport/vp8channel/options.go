@@ -3,7 +3,7 @@ package vp8channel
 import (
 	"fmt"
 
-	"github.com/openlibrecommunity/olcrtc/internal/transport"
+	"github.com/fedorokss/olcrtc-clone/internal/transport"
 )
 
 const (

@@ -6,8 +6,8 @@ import (
 	"log"
 	"time"
 
+	"github.com/fedorokss/olcrtc-clone/internal/auth"
 	lksdk "github.com/livekit/server-sdk-go/v2"
-	"github.com/openlibrecommunity/olcrtc/internal/auth"
 )
 
 type Provider struct{}

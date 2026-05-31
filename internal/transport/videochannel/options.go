@@ -3,7 +3,7 @@ package videochannel
 import (
 	"fmt"
 
-	"github.com/openlibrecommunity/olcrtc/internal/transport"
+	"github.com/fedorokss/olcrtc-clone/internal/transport"
 )
 
 type Options struct {

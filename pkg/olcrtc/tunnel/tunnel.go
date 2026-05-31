@@ -4,10 +4,10 @@ import (
 	"context"
 	"fmt"
 
-	"github.com/openlibrecommunity/olcrtc/internal/app/session"
-	"github.com/openlibrecommunity/olcrtc/internal/handshake"
-	"github.com/openlibrecommunity/olcrtc/internal/server"
-	"github.com/openlibrecommunity/olcrtc/internal/transport"
+	"github.com/fedorokss/olcrtc-clone/internal/app/session"
+	"github.com/fedorokss/olcrtc-clone/internal/handshake"
+	"github.com/fedorokss/olcrtc-clone/internal/server"
+	"github.com/fedorokss/olcrtc-clone/internal/transport"
 )
 
 type TransportOptions = transport.Options

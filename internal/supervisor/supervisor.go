@@ -6,7 +6,7 @@ import (
 	"fmt"
 	"time"
 
-	"github.com/openlibrecommunity/olcrtc/internal/app/session"
+	"github.com/fedorokss/olcrtc-clone/internal/app/session"
 )
 
 const DefaultRetryDelay = 2 * time.Second

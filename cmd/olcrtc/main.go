@@ -13,13 +13,13 @@ import (
 	"syscall"
 	"time"
 
+	"github.com/fedorokss/olcrtc-clone/internal/app/session"
+	configpkg "github.com/fedorokss/olcrtc-clone/internal/config"
+	"github.com/fedorokss/olcrtc-clone/internal/logger"
+	"github.com/fedorokss/olcrtc-clone/internal/names"
+	"github.com/fedorokss/olcrtc-clone/internal/supervisor"
 	protoLogger "github.com/livekit/protocol/logger"
 	lksdk "github.com/livekit/server-sdk-go/v2"
-	"github.com/openlibrecommunity/olcrtc/internal/app/session"
-	configpkg "github.com/openlibrecommunity/olcrtc/internal/config"
-	"github.com/openlibrecommunity/olcrtc/internal/logger"
-	"github.com/openlibrecommunity/olcrtc/internal/names"
-	"github.com/openlibrecommunity/olcrtc/internal/supervisor"
 )
 
 const modeGen = "gen"

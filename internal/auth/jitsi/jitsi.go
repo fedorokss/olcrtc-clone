@@ -6,7 +6,7 @@ import (
 	"fmt"
 	"strings"
 
-	"github.com/openlibrecommunity/olcrtc/internal/auth"
+	"github.com/fedorokss/olcrtc-clone/internal/auth"
 )
 
 const CredentialKeyRoom = "room"

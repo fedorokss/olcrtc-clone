@@ -7,9 +7,9 @@ import (
 	"sync"
 	"time"
 
-	"github.com/openlibrecommunity/olcrtc/internal/control"
-	"github.com/openlibrecommunity/olcrtc/internal/crypto"
-	"github.com/openlibrecommunity/olcrtc/internal/transport"
+	"github.com/fedorokss/olcrtc-clone/internal/control"
+	"github.com/fedorokss/olcrtc-clone/internal/crypto"
+	"github.com/fedorokss/olcrtc-clone/internal/transport"
 	"github.com/xtaci/smux"
 )
 

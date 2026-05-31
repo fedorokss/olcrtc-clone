@@ -5,11 +5,11 @@ import (
 	"fmt"
 	"time"
 
+	"github.com/fedorokss/olcrtc-clone/internal/engine"
+	"github.com/fedorokss/olcrtc-clone/internal/logger"
+	"github.com/fedorokss/olcrtc-clone/internal/protect"
 	"github.com/google/uuid"
 	"github.com/gorilla/websocket"
-	"github.com/openlibrecommunity/olcrtc/internal/engine"
-	"github.com/openlibrecommunity/olcrtc/internal/logger"
-	"github.com/openlibrecommunity/olcrtc/internal/protect"
 	"github.com/pion/webrtc/v4"
 )
 

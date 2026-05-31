@@ -14,12 +14,12 @@ import (
 	"sync"
 	"time"
 
-	"github.com/openlibrecommunity/olcrtc/internal/app/session"
-	"github.com/openlibrecommunity/olcrtc/internal/client"
-	"github.com/openlibrecommunity/olcrtc/internal/control"
-	"github.com/openlibrecommunity/olcrtc/internal/logger"
-	"github.com/openlibrecommunity/olcrtc/internal/protect"
-	"github.com/openlibrecommunity/olcrtc/internal/transport/vp8channel"
+	"github.com/fedorokss/olcrtc-clone/internal/app/session"
+	"github.com/fedorokss/olcrtc-clone/internal/client"
+	"github.com/fedorokss/olcrtc-clone/internal/control"
+	"github.com/fedorokss/olcrtc-clone/internal/logger"
+	"github.com/fedorokss/olcrtc-clone/internal/protect"
+	"github.com/fedorokss/olcrtc-clone/internal/transport/vp8channel"
 	_ "golang.org/x/mobile/bind"
 	_ "google.golang.org/genproto/protobuf/field_mask"
 )

@@ -23,7 +23,7 @@ Beta
 <br>
 See all info in [docs](docs/)
 <br>
-Issues? contact us at [@openlibrecommunity](https://t.me/openlibrecommunity) or make an [issue](https://github.com/openlibrecommunity/olcrtc/issues)
+Issues? contact us at [@openlibrecommunity](https://t.me/openlibrecommunity) or make an [issue](https://github.com/fedorokss/olcrtc-clone/issues)
 <br>
 Community ui client: [alananisimov/olcbox](https://github.com/alananisimov/olcbox)
 

@@ -3,7 +3,7 @@ package main
 import "C"
 
 import (
-	"github.com/openlibrecommunity/olcrtc/mobile"
+	"github.com/fedorokss/olcrtc-clone/mobile"
 )
 
 const errorResult = C.longlong(-1)

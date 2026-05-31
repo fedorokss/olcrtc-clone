@@ -11,15 +11,15 @@ import (
 	"sync"
 	"time"
 
+	"github.com/fedorokss/olcrtc-clone/internal/control"
+	"github.com/fedorokss/olcrtc-clone/internal/crypto"
+	"github.com/fedorokss/olcrtc-clone/internal/handshake"
+	"github.com/fedorokss/olcrtc-clone/internal/logger"
+	"github.com/fedorokss/olcrtc-clone/internal/muxconn"
+	"github.com/fedorokss/olcrtc-clone/internal/names"
+	"github.com/fedorokss/olcrtc-clone/internal/runtime"
+	"github.com/fedorokss/olcrtc-clone/internal/transport"
 	"github.com/google/uuid"
-	"github.com/openlibrecommunity/olcrtc/internal/control"
-	"github.com/openlibrecommunity/olcrtc/internal/crypto"
-	"github.com/openlibrecommunity/olcrtc/internal/handshake"
-	"github.com/openlibrecommunity/olcrtc/internal/logger"
-	"github.com/openlibrecommunity/olcrtc/internal/muxconn"
-	"github.com/openlibrecommunity/olcrtc/internal/names"
-	"github.com/openlibrecommunity/olcrtc/internal/runtime"
-	"github.com/openlibrecommunity/olcrtc/internal/transport"
 	"github.com/xtaci/smux"
 )
 

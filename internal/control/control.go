@@ -10,7 +10,7 @@ import (
 	"time"
 	"unicode/utf8"
 
-	"github.com/openlibrecommunity/olcrtc/internal/framing"
+	"github.com/fedorokss/olcrtc-clone/internal/framing"
 )
 
 const (

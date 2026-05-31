@@ -5,8 +5,8 @@ import (
 	"strings"
 	"time"
 
+	"github.com/fedorokss/olcrtc-clone/internal/logger"
 	"github.com/google/uuid"
-	"github.com/openlibrecommunity/olcrtc/internal/logger"
 	"github.com/pion/webrtc/v4"
 )
 

@@ -8,7 +8,7 @@ import (
 	"strings"
 	"unicode/utf8"
 
-	"github.com/openlibrecommunity/olcrtc/internal/app/session"
+	"github.com/fedorokss/olcrtc-clone/internal/app/session"
 	"gopkg.in/yaml.v3"
 )
 

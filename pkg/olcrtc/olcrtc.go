@@ -7,9 +7,9 @@ import (
 	"io"
 	"net"
 
-	"github.com/openlibrecommunity/olcrtc/internal/auth"
-	"github.com/openlibrecommunity/olcrtc/internal/engine"
-	enginebuiltin "github.com/openlibrecommunity/olcrtc/internal/engine/builtin"
+	"github.com/fedorokss/olcrtc-clone/internal/auth"
+	"github.com/fedorokss/olcrtc-clone/internal/engine"
+	enginebuiltin "github.com/fedorokss/olcrtc-clone/internal/engine/builtin"
 )
 
 var (

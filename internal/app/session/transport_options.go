@@ -1,10 +1,10 @@
 package session
 
 import (
-	"github.com/openlibrecommunity/olcrtc/internal/transport"
-	"github.com/openlibrecommunity/olcrtc/internal/transport/seichannel"
-	"github.com/openlibrecommunity/olcrtc/internal/transport/videochannel"
-	"github.com/openlibrecommunity/olcrtc/internal/transport/vp8channel"
+	"github.com/fedorokss/olcrtc-clone/internal/transport"
+	"github.com/fedorokss/olcrtc-clone/internal/transport/seichannel"
+	"github.com/fedorokss/olcrtc-clone/internal/transport/videochannel"
+	"github.com/fedorokss/olcrtc-clone/internal/transport/vp8channel"
 )
 
 func buildTransportOptions(cfg Config) transport.Options {

@@ -10,7 +10,7 @@ import (
 	"net/url"
 	"sync"
 
-	"github.com/openlibrecommunity/olcrtc/internal/protect"
+	"github.com/fedorokss/olcrtc-clone/internal/protect"
 )
 
 const defaultWSURL = "wss://rtc-el-02.wb.ru"

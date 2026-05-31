@@ -9,9 +9,9 @@ import (
 	"sync/atomic"
 	"time"
 
-	"github.com/openlibrecommunity/olcrtc/internal/crypto"
-	"github.com/openlibrecommunity/olcrtc/internal/logger"
-	"github.com/openlibrecommunity/olcrtc/internal/transport"
+	"github.com/fedorokss/olcrtc-clone/internal/crypto"
+	"github.com/fedorokss/olcrtc-clone/internal/logger"
+	"github.com/fedorokss/olcrtc-clone/internal/transport"
 )
 
 var ErrClosed = errors.New("muxconn: closed")

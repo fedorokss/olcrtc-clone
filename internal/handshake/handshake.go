@@ -7,7 +7,7 @@ import (
 	"io"
 	"time"
 
-	"github.com/openlibrecommunity/olcrtc/internal/framing"
+	"github.com/fedorokss/olcrtc-clone/internal/framing"
 )
 
 const ProtoVersion = 1

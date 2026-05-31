@@ -14,8 +14,8 @@ import (
 	"sync/atomic"
 	"time"
 
-	"github.com/openlibrecommunity/olcrtc/internal/engine"
-	"github.com/openlibrecommunity/olcrtc/internal/logger"
+	"github.com/fedorokss/olcrtc-clone/internal/engine"
+	"github.com/fedorokss/olcrtc-clone/internal/logger"
 	pioninterceptor "github.com/pion/interceptor"
 	"github.com/pion/rtcp"
 	"github.com/pion/webrtc/v4"
