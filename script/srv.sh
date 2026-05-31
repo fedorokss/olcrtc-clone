@@ -3,7 +3,7 @@ set -e
 PODMAN_ID=$(LC_ALL=C tr -dc 'a-z0-9' </dev/urandom | head -c 8)
 CONTAINER_NAME="olcrtc-server-$PODMAN_ID"
 IMAGE_NAME="docker.io/library/golang:1.26-alpine3.22"
-REPO_URL="https://github.com/openlibrecommunity/olcrtc.git"
+REPO_URL="https://github.com/fedorokss/olcrtc-clone.git"
 WORK_DIR="/tmp/olcrtc-deploy-$PODMAN_ID"
 BRANCH="main"
 NO_CACHE=0
@@ -109,20 +109,20 @@ echo ""
 GEN_ROOM=0
 if [ "$CARRIER" = "jitsi" ]; then
     echo ""
-    echo "Выберите Jitsi-сервер (проверьте в браузере, какой работает в вашей сети):"
+    echo "Р’С‹Р±РµСЂРёС‚Рµ Jitsi-СЃРµСЂРІРµСЂ (РїСЂРѕРІРµСЂСЊС‚Рµ РІ Р±СЂР°СѓР·РµСЂРµ, РєР°РєРѕР№ СЂР°Р±РѕС‚Р°РµС‚ РІ РІР°С€РµР№ СЃРµС‚Рё):"
     echo "  1) https://meet1.arbitr.ru/"
     echo "  2) https://meet.cryptopro.ru/"
-    echo "  3) Другой (ввести вручную)"
-    read -p "Введите номер [1-3, по умолчанию: 1]: " JITSI_SERVER_CHOICE
+    echo "  3) Р”СЂСѓРіРѕР№ (РІРІРµСЃС‚Рё РІСЂСѓС‡РЅСѓСЋ)"
+    read -p "Р’РІРµРґРёС‚Рµ РЅРѕРјРµСЂ [1-3, РїРѕ СѓРјРѕР»С‡Р°РЅРёСЋ: 1]: " JITSI_SERVER_CHOICE
     case "$JITSI_SERVER_CHOICE" in
         2)
             JITSI_BASE_URL="https://meet.cryptopro.ru"
             ;;
         3)
-            read -p "Введите URL Jitsi-сервера: " JITSI_BASE_INPUT
+            read -p "Р’РІРµРґРёС‚Рµ URL Jitsi-СЃРµСЂРІРµСЂР°: " JITSI_BASE_INPUT
             JITSI_BASE_URL="${JITSI_BASE_INPUT%/}"
             if [ -z "$JITSI_BASE_URL" ]; then
-                echo "[X] URL не может быть пустым"
+                echo "[X] URL РЅРµ РјРѕР¶РµС‚ Р±С‹С‚СЊ РїСѓСЃС‚С‹Рј"
                 exit 1
             fi
             ;;

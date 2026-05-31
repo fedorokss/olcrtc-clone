@@ -1,4 +1,4 @@
-module github.com/openlibrecommunity/olcrtc
+module github.com/fedorokss/olcrtc-clone
 
 go 1.26.3
 

@@ -137,17 +137,17 @@ func New(_ context.Context, cfg engine.Config) (engine.Session, error) {
 }
 
 var cyrillicToLatin = map[rune]string{ //nolint:gochecknoglobals
-	'А': "A", 'а': "a", 'Б': "B", 'б': "b", 'В': "V", 'в': "v",
-	'Г': "G", 'г': "g", 'Д': "D", 'д': "d", 'Е': "E", 'е': "e",
-	'Ё': "Yo", 'ё': "yo", 'Ж': "Zh", 'ж': "zh", 'З': "Z", 'з': "z",
-	'И': "I", 'и': "i", 'Й': "Y", 'й': "y", 'К': "K", 'к': "k",
-	'Л': "L", 'л': "l", 'М': "M", 'м': "m", 'Н': "N", 'н': "n",
-	'О': "O", 'о': "o", 'П': "P", 'п': "p", 'Р': "R", 'р': "r",
-	'С': "S", 'с': "s", 'Т': "T", 'т': "t", 'У': "U", 'у': "u",
-	'Ф': "F", 'ф': "f", 'Х': "Kh", 'х': "kh", 'Ц': "Ts", 'ц': "ts",
-	'Ч': "Ch", 'ч': "ch", 'Ш': "Sh", 'ш': "sh", 'Щ': "Shch", 'щ': "shch",
-	'Ъ': "", 'ъ': "", 'Ы': "Y", 'ы': "y", 'Ь': "", 'ь': "",
-	'Э': "E", 'э': "e", 'Ю': "Yu", 'ю': "yu", 'Я': "Ya", 'я': "ya",
+	'Р С’': "A", 'Р В°': "a", 'Р вЂ': "B", 'Р В±': "b", 'Р вЂ™': "V", 'Р Р†': "v",
+	'Р вЂњ': "G", 'Р С–': "g", 'Р вЂќ': "D", 'Р Т‘': "d", 'Р вЂў': "E", 'Р Вµ': "e",
+	'Р Рѓ': "Yo", 'РЎвЂ': "yo", 'Р вЂ“': "Zh", 'Р В¶': "zh", 'Р вЂ”': "Z", 'Р В·': "z",
+	'Р В': "I", 'Р С‘': "i", 'Р в„ў': "Y", 'Р в„–': "y", 'Р С™': "K", 'Р С”': "k",
+	'Р вЂє': "L", 'Р В»': "l", 'Р Сљ': "M", 'Р С': "m", 'Р Сњ': "N", 'Р Р…': "n",
+	'Р С›': "O", 'Р С•': "o", 'Р Сџ': "P", 'Р С—': "p", 'Р В ': "R", 'РЎР‚': "r",
+	'Р РЋ': "S", 'РЎРѓ': "s", 'Р Сћ': "T", 'РЎвЂљ': "t", 'Р Р€': "U", 'РЎС“': "u",
+	'Р В¤': "F", 'РЎвЂћ': "f", 'Р Тђ': "Kh", 'РЎвЂ¦': "kh", 'Р В¦': "Ts", 'РЎвЂ ': "ts",
+	'Р В§': "Ch", 'РЎвЂЎ': "ch", 'Р РЃ': "Sh", 'РЎв‚¬': "sh", 'Р В©': "Shch", 'РЎвЂ°': "shch",
+	'Р Р„': "", 'РЎР‰': "", 'Р В«': "Y", 'РЎвЂ№': "y", 'Р В¬': "", 'РЎРЉ': "",
+	'Р В­': "E", 'РЎРЊ': "e", 'Р В®': "Yu", 'РЎР‹': "yu", 'Р Р‡': "Ya", 'РЎРЏ': "ya",
 }
 
 func sanitiseNick(raw string) string {
@@ -222,7 +222,7 @@ func (s *Session) Connect(ctx context.Context) error {
 	if s.closed.Load() {
 		return ErrSessionClosed
 	}
-	logger.Infof("jitsi: joining MUC %s/%s as %s …", s.host, s.room, s.name)
+	logger.Infof("jitsi: joining MUC %s/%s as %s РІР‚В¦", s.host, s.room, s.name)
 	jSess, err := j.JoinMUC(ctx, j.Config{
 		Host:  s.host,
 		Room:  s.room,
@@ -233,7 +233,7 @@ func (s *Session) Connect(ctx context.Context) error {
 		return fmt.Errorf("jitsi join muc: %w", err)
 	}
 	s.jSess.Store(jSess)
-	logger.Infof("jitsi: MUC joined %s/%s; waiting for peer …", s.host, s.room)
+	logger.Infof("jitsi: MUC joined %s/%s; waiting for peer РІР‚В¦", s.host, s.room)
 	s.wg.Add(3)
 	go s.sendLoop()
 	go s.recvLoop()
@@ -287,7 +287,7 @@ func (s *Session) completeJingleSetup(ctx context.Context, jSess *j.Session) err
 }
 
 func (s *Session) joinAndOpenBridge(ctx context.Context) (*j.Session, error) { //nolint:cyclop
-	logger.Infof("jitsi: joining %s/%s as %s …", s.host, s.room, s.name)
+	logger.Infof("jitsi: joining %s/%s as %s РІР‚В¦", s.host, s.room, s.name)
 	jSess, err := j.Join(ctx, j.Config{
 		Host:  s.host,
 		Room:  s.room,
