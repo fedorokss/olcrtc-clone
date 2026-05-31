@@ -172,18 +172,18 @@ func (s *Session) SetShouldReconnect(fn func() bool) {
 	s.inner.SetShouldReconnect(fn)
 }
 
-func CreateRoom(ctx context.Context, authName string) (string, error) {
+func CreateRoom(ctx context.Context, authName string) (string, string, error) {
 	p, err := auth.Get(authName)
 	if err != nil {
-		return "", fmt.Errorf("olcrtc: auth provider %q not registered: %w", authName, err)
+		return "", "", fmt.Errorf("olcrtc: auth provider %q not registered: %w", authName, err)
 	}
 	creator, ok := p.(auth.RoomCreator)
 	if !ok {
-		return "", fmt.Errorf("%w: %s", ErrRoomCreationUnsupported, authName)
+		return "", "", fmt.Errorf("%w: %s", ErrRoomCreationUnsupported, authName)
 	}
-	roomID, err := creator.CreateRoom(ctx, auth.Config{})
+	roomID, token, err := creator.CreateRoom(ctx, auth.Config{})
 	if err != nil {
-		return "", fmt.Errorf("olcrtc: create room: %w", err)
+		return "", "", fmt.Errorf("olcrtc: create room: %w", err)
 	}
-	return roomID, nil
+	return roomID, token, nil
 }

@@ -136,12 +136,12 @@ func getToken(ctx context.Context, accessToken, roomID, displayName string) (tok
 	return res, nil
 }
 
-func createRoom(ctx context.Context, wbToken, wbCookie, displayName string) (string, error) {
+func createRoom(ctx context.Context, wbToken, wbCookie, displayName string) (string, string, error) {
 	// If no token is provided, we need to register as a guest first
 	if wbToken == "" {
 		guestToken, err := registerGuest(ctx, displayName)
 		if err != nil {
-			return "", fmt.Errorf("guest register for room creation failed: %w", err)
+			return "", "", fmt.Errorf("guest register for room creation failed: %w", err)
 		}
 		wbToken = guestToken
 	}
@@ -150,7 +150,7 @@ func createRoom(ctx context.Context, wbToken, wbCookie, displayName string) (str
 	u := apiBase + "/api-room/api/v2/room"
 	req, err := http.NewRequestWithContext(ctx, http.MethodPost, u, bytes.NewReader(body))
 	if err != nil {
-		return "", err
+		return "", "", err
 	}
 	req.Header.Set("Authorization", "Bearer "+wbToken)
 	if wbCookie != "" {
@@ -161,20 +161,20 @@ func createRoom(ctx context.Context, wbToken, wbCookie, displayName string) (str
 
 	resp, err := sharedClient().Do(req)
 	if err != nil {
-		return "", err
+		return "", "", err
 	}
 	defer resp.Body.Close()
 
 	if resp.StatusCode != http.StatusOK {
-		return "", fmt.Errorf("create room status %d: %w", resp.StatusCode, protect.StatusError(errors.New("create room failed"), resp, 4096))
+		return "", "", fmt.Errorf("create room status %d: %w", resp.StatusCode, protect.StatusError(errors.New("create room failed"), resp, 4096))
 	}
 	var r struct {
 		RoomID string `json:"roomId"`
 	}
 	if err := json.NewDecoder(resp.Body).Decode(&r); err != nil {
-		return "", err
+		return "", "", err
 	}
-	return r.RoomID, nil
+	return r.RoomID, wbToken, nil
 }
 
 func joinRoomKeeper(ctx context.Context, wbToken, wbCookie, roomID string) error {

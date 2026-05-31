@@ -549,7 +549,8 @@ func Run(ctx context.Context, cfg Config) error {
 		p, _ := auth.Get(cfg.Auth)
 		if creator, ok := p.(auth.RoomCreator); ok {
 			var err error
-			roomURL, err = creator.CreateRoom(ctx, auth.Config{
+			var token string
+			roomURL, token, err = creator.CreateRoom(ctx, auth.Config{
 				Name:      names.Generate(),
 				DNSServer: cfg.DNSServer,
 				WBToken:   cfg.WBToken,
@@ -559,6 +560,9 @@ func Run(ctx context.Context, cfg Config) error {
 				return fmt.Errorf("auto create room: %w", err)
 			}
 			cfg.RoomID = roomURL
+			if token != "" {
+				cfg.WBToken = token
+			}
 			logger.Infof("Auto-created room: %s", roomURL)
 			if cfg.Auth == "wbstream" {
 				if err := os.WriteFile("wb_stream_id", []byte(roomURL), 0644); err != nil {
@@ -572,6 +576,9 @@ func Run(ctx context.Context, cfg Config) error {
 			return fmt.Errorf("wbstream provider does not implement RoomCreator")
 		}
 	}
+
+	// Double check that we pass RoomID to runOnce (it might have been auto-created above)
+	roomURL = cfg.RoomID
 
 	p, _ := auth.Get(cfg.Auth)
 	if keeper, ok := p.(auth.Keeper); ok {
@@ -792,7 +799,7 @@ func Gen(ctx context.Context, cfg Config, out func(string)) error {
 		var roomID string
 		err := genRetry(ctx, func(ctx context.Context) error {
 			var genErr error
-			roomID, genErr = creator.CreateRoom(ctx, auth.Config{
+			roomID, _, genErr = creator.CreateRoom(ctx, auth.Config{
 				Name:      names.Generate(),
 				DNSServer: cfg.DNSServer,
 				WBToken:   cfg.WBToken,

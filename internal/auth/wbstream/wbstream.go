@@ -55,7 +55,7 @@ func (Provider) Issue(ctx context.Context, cfg auth.Config) (auth.Credentials, e
 	}, nil
 }
 
-func (Provider) CreateRoom(ctx context.Context, cfg auth.Config) (string, error) {
+func (Provider) CreateRoom(ctx context.Context, cfg auth.Config) (string, string, error) {
 	// Let guests create rooms too, use empty token if none provided
 	return createRoom(ctx, cfg.WBToken, cfg.WBCookie, cfg.Name)
 }

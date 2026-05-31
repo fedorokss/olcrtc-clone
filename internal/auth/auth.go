@@ -35,7 +35,7 @@ type Provider interface {
 }
 
 type RoomCreator interface {
-	CreateRoom(ctx context.Context, cfg Config) (roomID string, err error)
+	CreateRoom(ctx context.Context, cfg Config) (roomID string, token string, err error)
 }
 
 type Keeper interface {
