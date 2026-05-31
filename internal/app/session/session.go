@@ -772,7 +772,12 @@ func Gen(ctx context.Context, cfg Config, out func(string)) error {
 		var roomID string
 		err := genRetry(ctx, func(ctx context.Context) error {
 			var genErr error
-			roomID, genErr = creator.CreateRoom(ctx, auth.Config{Name: names.Generate(), DNSServer: cfg.DNSServer})
+			roomID, genErr = creator.CreateRoom(ctx, auth.Config{
+				Name:      names.Generate(),
+				DNSServer: cfg.DNSServer,
+				WBToken:   cfg.WBToken,
+				WBCookie:  cfg.WBCookie,
+			})
 			if genErr != nil {
 				return fmt.Errorf("CreateRoom: %w", genErr)
 			}
