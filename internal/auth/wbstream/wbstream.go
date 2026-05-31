@@ -49,10 +49,8 @@ func (Provider) Issue(ctx context.Context, cfg auth.Config) (auth.Credentials, e
 }
 
 func (Provider) CreateRoom(ctx context.Context, cfg auth.Config) (string, error) {
-	if cfg.WBToken == "" {
-		return "", fmt.Errorf("wb_token required for room creation")
-	}
-	return createRoom(ctx, cfg.WBToken, cfg.WBCookie)
+	// Let guests create rooms too, use empty token if none provided
+	return createRoom(ctx, cfg.WBToken, cfg.WBCookie, cfg.Name)
 }
 
 func (Provider) KeepAlive(ctx context.Context, cfg auth.Config) {

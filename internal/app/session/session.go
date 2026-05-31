@@ -567,6 +567,9 @@ func Run(ctx context.Context, cfg Config) error {
 					logger.Infof("Saved WB Stream session to wb_stream_id")
 				}
 			}
+		} else if cfg.Auth == "wbstream" {
+			// This shouldn't happen, but just in case
+			return fmt.Errorf("wbstream provider does not implement RoomCreator")
 		}
 	}
 

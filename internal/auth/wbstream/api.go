@@ -136,7 +136,16 @@ func getToken(ctx context.Context, accessToken, roomID, displayName string) (tok
 	return res, nil
 }
 
-func createRoom(ctx context.Context, wbToken, wbCookie string) (string, error) {
+func createRoom(ctx context.Context, wbToken, wbCookie, displayName string) (string, error) {
+	// If no token is provided, we need to register as a guest first
+	if wbToken == "" {
+		guestToken, err := registerGuest(ctx, displayName)
+		if err != nil {
+			return "", fmt.Errorf("guest register for room creation failed: %w", err)
+		}
+		wbToken = guestToken
+	}
+
 	body := []byte(`{"roomType":"ROOM_TYPE_ALL_ON_SCREEN","roomPrivacy":"ROOM_PRIVACY_FREE"}`)
 	u := apiBase + "/api-room/api/v2/room"
 	req, err := http.NewRequestWithContext(ctx, http.MethodPost, u, bytes.NewReader(body))
@@ -157,7 +166,7 @@ func createRoom(ctx context.Context, wbToken, wbCookie string) (string, error) {
 	defer resp.Body.Close()
 
 	if resp.StatusCode != http.StatusOK {
-		return "", fmt.Errorf("create room status %d", resp.StatusCode)
+		return "", fmt.Errorf("create room status %d: %w", resp.StatusCode, protect.StatusError(errors.New("create room failed"), resp, 4096))
 	}
 	var r struct {
 		RoomID string `json:"roomId"`
