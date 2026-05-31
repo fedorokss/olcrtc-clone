@@ -3,8 +3,8 @@ set -e
 
 DEPLOY_ID=$(LC_ALL=C tr -dc 'a-z0-9' </dev/urandom | head -c 8)
 WORK_DIR="/tmp/olcrtc-manual-deploy-$DEPLOY_ID"
-REPO_URL="https://github.com/openlibrecommunity/olcrtc.git"
-BRANCH="master"
+REPO_URL="https://github.com/fedorokss/olcrtc-clone.git"
+BRANCH="main"
 GO_VERSION="1.26.3"
 
 while [[ $# -gt 0 ]]; do

@@ -8,7 +8,7 @@ REPO_URL="https://github.com/openlibrecommunity/olcrtc.git"
 WORK_DIR="/tmp/olcrtc-client-$PODMAN_ID"
 SOCKS_IP="127.0.0.1"
 SOCKS_PORT="8808"
-BRANCH="master"
+BRANCH="main"
 NO_CACHE=0
 
 while [[ $# -gt 0 ]]; do

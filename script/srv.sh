@@ -5,7 +5,7 @@ CONTAINER_NAME="olcrtc-server-$PODMAN_ID"
 IMAGE_NAME="docker.io/library/golang:1.26-alpine3.22"
 REPO_URL="https://github.com/openlibrecommunity/olcrtc.git"
 WORK_DIR="/tmp/olcrtc-deploy-$PODMAN_ID"
-BRANCH="master"
+BRANCH="main"
 NO_CACHE=0
 while [[ $# -gt 0 ]]; do
     case $1 in
