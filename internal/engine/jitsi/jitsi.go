@@ -32,12 +32,11 @@ const (
 	maxReconnects        = 5
 	reconnectWindow      = 5 * time.Minute
 	bridgeMagicLen       = 4
-	epochHeaderLen       = 8
-	frameHeaderLen       = bridgeMagicLen + epochHeaderLen
+	bridgeFrameHeaderLen = bridgeMagicLen + 8
 )
 
-var bridgeMagic = [bridgeMagicLen]byte{'O', 'L', 'R', '1'} //nolint:gochecknoglobals
-var fallbackEpoch atomic.Uint32                            //nolint:gochecknoglobals
+var bridgeMagic = [4]byte{'O', 'L', 'R', '1'} //nolint:gochecknoglobals
+var fallbackEpoch atomic.Uint32               //nolint:gochecknoglobals
 
 var (
 	ErrSessionClosed  = errors.New("jitsi session closed")
@@ -82,8 +81,9 @@ type Session struct {
 	peerEpochMu  sync.Mutex
 	peerEpochs   map[string]uint32
 
-	done          chan struct{}
-	doneOnce      sync.Once
+	done     chan struct{}
+	doneOnce sync.Once
+
 	cancel        context.CancelFunc
 	trickleCancel context.CancelFunc
 	runCtx        context.Context //nolint:containedctx
@@ -137,23 +137,23 @@ func New(_ context.Context, cfg engine.Config) (engine.Session, error) {
 }
 
 var cyrillicToLatin = map[rune]string{ //nolint:gochecknoglobals
-	'Р С’': "A", 'Р В°': "a", 'Р вЂ': "B", 'Р В±': "b", 'Р вЂ™': "V", 'Р Р†': "v",
-	'Р вЂњ': "G", 'Р С–': "g", 'Р вЂќ': "D", 'Р Т‘': "d", 'Р вЂў': "E", 'Р Вµ': "e",
-	'Р Рѓ': "Yo", 'РЎвЂ': "yo", 'Р вЂ“': "Zh", 'Р В¶': "zh", 'Р вЂ”': "Z", 'Р В·': "z",
-	'Р В': "I", 'Р С‘': "i", 'Р в„ў': "Y", 'Р в„–': "y", 'Р С™': "K", 'Р С”': "k",
-	'Р вЂє': "L", 'Р В»': "l", 'Р Сљ': "M", 'Р С': "m", 'Р Сњ': "N", 'Р Р…': "n",
-	'Р С›': "O", 'Р С•': "o", 'Р Сџ': "P", 'Р С—': "p", 'Р В ': "R", 'РЎР‚': "r",
-	'Р РЋ': "S", 'РЎРѓ': "s", 'Р Сћ': "T", 'РЎвЂљ': "t", 'Р Р€': "U", 'РЎС“': "u",
-	'Р В¤': "F", 'РЎвЂћ': "f", 'Р Тђ': "Kh", 'РЎвЂ¦': "kh", 'Р В¦': "Ts", 'РЎвЂ ': "ts",
-	'Р В§': "Ch", 'РЎвЂЎ': "ch", 'Р РЃ': "Sh", 'РЎв‚¬': "sh", 'Р В©': "Shch", 'РЎвЂ°': "shch",
-	'Р Р„': "", 'РЎР‰': "", 'Р В«': "Y", 'РЎвЂ№': "y", 'Р В¬': "", 'РЎРЉ': "",
-	'Р В­': "E", 'РЎРЊ': "e", 'Р В®': "Yu", 'РЎР‹': "yu", 'Р Р‡': "Ya", 'РЎРЏ': "ya",
+	'А': "A", 'а': "a", 'Б': "B", 'б': "b", 'В': "V", 'в': "v",
+	'Г': "G", 'г': "g", 'Д': "D", 'д': "d", 'Е': "E", 'е': "e",
+	'Ё': "Yo", 'ё': "yo", 'Ж': "Zh", 'ж': "zh", 'З': "Z", 'з': "z",
+	'И': "I", 'и': "i", 'Й': "Y", 'й': "y", 'К': "K", 'к': "k",
+	'Л': "L", 'л': "l", 'М': "M", 'м': "m", 'Н': "N", 'н': "n",
+	'О': "O", 'о': "o", 'П': "P", 'п': "p", 'Р': "R", 'р': "r",
+	'С': "S", 'с': "s", 'Т': "T", 'т': "t", 'У': "U", 'у': "u",
+	'Ф': "F", 'ф': "f", 'Х': "Kh", 'х': "kh", 'Ц': "Ts", 'ц': "ts",
+	'Ч': "Ch", 'ч': "ch", 'Ш': "Sh", 'ш': "sh", 'Щ': "Shch", 'щ': "shch",
+	'Ъ': "", 'ъ': "", 'Ы': "Y", 'ы': "y", 'Ь': "", 'ь': "",
+	'Э': "E", 'э': "e", 'Ю': "Yu", 'ю': "yu", 'Я': "Ya", 'я': "ya",
 }
 
 func sanitiseNick(raw string) string {
 	const maxNickLen = 16
 	var b strings.Builder
-	b.Grow(min(len(raw), maxNickLen))
+	b.Grow(maxNickLen)
 	prevDash := false
 	for _, r := range raw {
 		if b.Len() >= maxNickLen {
@@ -165,15 +165,13 @@ func sanitiseNick(raw string) string {
 			continue
 		}
 		if lat, ok := cyrillicToLatin[r]; ok {
-			if lat != "" {
-				for i := 0; i < len(lat); i++ {
-					if b.Len() >= maxNickLen {
-						break
-					}
-					b.WriteByte(lat[i])
+			for i := 0; i < len(lat); i++ {
+				if b.Len() >= maxNickLen {
+					break
 				}
-				prevDash = false
+				b.WriteByte(lat[i])
 			}
+			prevDash = false
 			continue
 		}
 		if !prevDash && b.Len() > 0 {
@@ -222,7 +220,7 @@ func (s *Session) Connect(ctx context.Context) error {
 	if s.closed.Load() {
 		return ErrSessionClosed
 	}
-	logger.Infof("jitsi: joining MUC %s/%s as %s РІР‚В¦", s.host, s.room, s.name)
+	logger.Infof("jitsi: joining MUC %s/%s as %s …", s.host, s.room, s.name)
 	jSess, err := j.JoinMUC(ctx, j.Config{
 		Host:  s.host,
 		Room:  s.room,
@@ -233,11 +231,12 @@ func (s *Session) Connect(ctx context.Context) error {
 		return fmt.Errorf("jitsi join muc: %w", err)
 	}
 	s.jSess.Store(jSess)
-	logger.Infof("jitsi: MUC joined %s/%s; waiting for peer РІР‚В¦", s.host, s.room)
-	s.wg.Add(3)
+	logger.Infof("jitsi: MUC joined %s/%s; waiting for peer …", s.host, s.room)
+	s.wg.Add(4)
 	go s.sendLoop()
 	go s.recvLoop()
 	go s.waitForJingle()
+	go s.bridgeKeepalive()
 	return nil
 }
 
@@ -247,13 +246,15 @@ func (s *Session) waitForJingle() {
 	if jSess == nil {
 		return
 	}
-	if _, err := jSess.Conn.WaitJingle(s.runCtx); err != nil {
+	stanza, err := jSess.Conn.WaitJingle(s.runCtx)
+	if err != nil {
 		if s.closed.Load() || s.runCtx.Err() != nil {
 			return
 		}
 		logger.Warnf("jitsi: wait jingle failed: %v", err)
 		return
 	}
+	_ = stanza
 	if err := s.completeJingleSetup(s.runCtx, jSess); err != nil {
 		if !s.closed.Load() {
 			logger.Warnf("jitsi: jingle setup failed: %v", err)
@@ -287,7 +288,7 @@ func (s *Session) completeJingleSetup(ctx context.Context, jSess *j.Session) err
 }
 
 func (s *Session) joinAndOpenBridge(ctx context.Context) (*j.Session, error) { //nolint:cyclop
-	logger.Infof("jitsi: joining %s/%s as %s РІР‚В¦", s.host, s.room, s.name)
+	logger.Infof("jitsi: joining %s/%s as %s …", s.host, s.room, s.name)
 	jSess, err := j.Join(ctx, j.Config{
 		Host:  s.host,
 		Room:  s.room,
@@ -350,7 +351,10 @@ func (s *Session) openBridgeSCTP(ctx context.Context, jSess *j.Session) error {
 }
 
 func (s *Session) shouldNegotiatePC() bool {
-	if s.onData != nil || s.onPeerData != nil {
+	if s.onData != nil {
+		return true
+	}
+	if s.onPeerData != nil {
 		return true
 	}
 	return s.shouldRequestVideo()
@@ -377,8 +381,7 @@ func (s *Session) videoTrackHandler() func(*webrtc.TrackRemote, *webrtc.RTPRecei
 	return s.onVideoTrack
 }
 
-//nolint:cyclop
-func (s *Session) negotiatePC(ctx context.Context, jSess *j.Session, sctpBridge bool) error {
+func (s *Session) negotiatePC(ctx context.Context, jSess *j.Session, sctpBridge bool) error { //nolint:cyclop
 	settings := webrtc.SettingEngine{}
 	settings.LoggerFactory = logger.NewPionLoggerFactory()
 	registry := &pioninterceptor.Registry{}
@@ -510,6 +513,33 @@ func (s *Session) rtcpKeepalive(pc *webrtc.PeerConnection) {
 	}
 }
 
+func (s *Session) bridgeKeepalive() {
+	defer s.wg.Done()
+	const interval = 10 * time.Second
+	ticker := time.NewTicker(interval)
+	defer ticker.Stop()
+	pinned := map[string]any{
+		"colibriClass":    "PinnedEndpointsChangedEvent",
+		"pinnedEndpoints": []string{},
+	}
+	for {
+		select {
+		case <-s.done:
+			return
+		case <-ticker.C:
+			jSess := s.jSess.Load()
+			if jSess == nil {
+				continue
+			}
+			br := jSess.Bridge()
+			if br == nil {
+				continue
+			}
+			_ = br.SendJSON(pinned)
+		}
+	}
+}
+
 func (s *Session) trickleDrainLoop(
 	ctx context.Context, pc *webrtc.PeerConnection, neg negotiator, stanzas <-chan string,
 ) {
@@ -573,7 +603,7 @@ func (s *Session) applyTrickleICE(pc *webrtc.PeerConnection, raw string) error {
 		content := &ti.Jingle.Contents[i]
 		mid := content.Name
 		for j := range content.Transport.Candidates {
-			sdpLine := buildSDPCandidate(&content.Transport.Candidates[j])
+			sdpLine := buildSDPCandidate(content.Transport.Candidates[j])
 			if sdpLine == "" {
 				continue
 			}
@@ -589,7 +619,7 @@ func (s *Session) applyTrickleICE(pc *webrtc.PeerConnection, raw string) error {
 	return nil
 }
 
-func buildSDPCandidate(c *xmlCandidate) string {
+func buildSDPCandidate(c xmlCandidate) string {
 	if c.IP == "" || c.Port == "" {
 		return ""
 	}
@@ -671,14 +701,14 @@ func (s *Session) SendTo(peerID string, data []byte) error {
 }
 
 func (s *Session) encodeBridgeFrame(data []byte, peerID string) ([]byte, error) {
-	if len(data)+frameHeaderLen > bridgeMaxMessageSize {
+	if len(data)+bridgeFrameHeaderLen > bridgeMaxMessageSize {
 		return nil, ErrSendTooLarge
 	}
-	framed := make([]byte, frameHeaderLen+len(data))
+	framed := make([]byte, bridgeFrameHeaderLen+len(data))
 	copy(framed, bridgeMagic[:])
 	binary.BigEndian.PutUint32(framed[bridgeMagicLen:bridgeMagicLen+4], s.localEpoch.Load())
-	binary.BigEndian.PutUint32(framed[bridgeMagicLen+4:frameHeaderLen], s.peerEpochFor(peerID))
-	copy(framed[frameHeaderLen:], data)
+	binary.BigEndian.PutUint32(framed[bridgeMagicLen+4:bridgeFrameHeaderLen], s.peerEpochFor(peerID))
+	copy(framed[bridgeFrameHeaderLen:], data)
 	return framed, nil
 }
 
@@ -772,12 +802,10 @@ func (s *Session) sendBridgeFrame(to string, data []byte) {
 }
 
 func (s *Session) waitJSession() *j.Session {
+	const retryDelay = 10 * time.Millisecond
 	if jSess := s.jSess.Load(); jSess != nil {
 		return jSess
 	}
-	const retryDelay = 10 * time.Millisecond
-	timer := time.NewTimer(retryDelay)
-	defer timer.Stop()
 	for {
 		if s.closed.Load() {
 			return nil
@@ -788,14 +816,13 @@ func (s *Session) waitJSession() *j.Session {
 		select {
 		case <-s.done:
 			return nil
-		case <-timer.C:
-			timer.Reset(retryDelay)
+		case <-time.After(retryDelay):
 		}
 	}
 }
 
 func (s *Session) outboundFrameCurrent(frame []byte) bool {
-	if len(frame) < frameHeaderLen {
+	if len(frame) < bridgeFrameHeaderLen {
 		return false
 	}
 	return binary.BigEndian.Uint32(frame[bridgeMagicLen:bridgeMagicLen+4]) == s.localEpoch.Load()
@@ -841,7 +868,10 @@ func (s *Session) deliverBridgeMessage(msg j.BridgeMessage, ok bool) bool {
 		return true
 	}
 	data, ok := s.acceptEpochFrame(payload)
-	if !ok || len(data) == 0 {
+	if !ok {
+		return true
+	}
+	if len(data) == 0 {
 		return true
 	}
 	s.onData(data)
@@ -850,6 +880,9 @@ func (s *Session) deliverBridgeMessage(msg j.BridgeMessage, ok bool) bool {
 
 func bridgePayload(msg j.BridgeMessage) ([]byte, bool) {
 	payload := decodeRaw(msg)
+	if payload == nil {
+		return nil, false
+	}
 	if len(payload) < bridgeMagicLen || !bytes.Equal(payload[:bridgeMagicLen], bridgeMagic[:]) {
 		return nil, false
 	}
@@ -866,41 +899,40 @@ func (s *Session) deliverPeerBridgePayload(from string, payload []byte) bool {
 }
 
 func (s *Session) acceptPeerEpochFrame(from string, payload []byte) ([]byte, bool) {
-	if len(payload) < frameHeaderLen {
+	if len(payload) < bridgeFrameHeaderLen {
 		return nil, false
 	}
-	local := s.localEpoch.Load()
 	senderEpoch := binary.BigEndian.Uint32(payload[bridgeMagicLen : bridgeMagicLen+4])
-	receiverEpoch := binary.BigEndian.Uint32(payload[bridgeMagicLen+4 : frameHeaderLen])
+	receiverEpoch := binary.BigEndian.Uint32(payload[bridgeMagicLen+4 : bridgeFrameHeaderLen])
+	local := s.localEpoch.Load()
 	if senderEpoch == 0 || senderEpoch == local {
 		return nil, false
 	}
 	if receiverEpoch != 0 && receiverEpoch != local {
-		logger.Debugf("jitsi: drop stale bridge frame peerEpoch=0x%08x localEpoch=0x%08x",
-			receiverEpoch, local)
+		logger.Debugf("jitsi: drop stale bridge frame peerEpoch=0x%08x localEpoch=0x%08x", receiverEpoch, local)
 		return nil, false
 	}
 	s.peerEpochMu.Lock()
-	if s.peerEpochs[from] != senderEpoch {
+	prev := s.peerEpochs[from]
+	if prev == 0 || prev != senderEpoch {
 		s.peerEpochs[from] = senderEpoch
 	}
 	s.peerEpochMu.Unlock()
-	return payload[frameHeaderLen:], true
+	return payload[bridgeFrameHeaderLen:], true
 }
 
 func (s *Session) acceptEpochFrame(payload []byte) ([]byte, bool) {
-	if len(payload) < frameHeaderLen {
+	if len(payload) < bridgeFrameHeaderLen {
 		return nil, false
 	}
-	local := s.localEpoch.Load()
 	senderEpoch := binary.BigEndian.Uint32(payload[bridgeMagicLen : bridgeMagicLen+4])
-	receiverEpoch := binary.BigEndian.Uint32(payload[bridgeMagicLen+4 : frameHeaderLen])
+	receiverEpoch := binary.BigEndian.Uint32(payload[bridgeMagicLen+4 : bridgeFrameHeaderLen])
+	local := s.localEpoch.Load()
 	if senderEpoch == 0 || senderEpoch == local {
 		return nil, false
 	}
 	if receiverEpoch != 0 && receiverEpoch != local {
-		logger.Debugf("jitsi: drop stale bridge frame peerEpoch=0x%08x localEpoch=0x%08x",
-			receiverEpoch, local)
+		logger.Debugf("jitsi: drop stale bridge frame peerEpoch=0x%08x localEpoch=0x%08x", receiverEpoch, local)
 		return nil, false
 	}
 	if prev := s.peerEpoch.Load(); prev == 0 {
@@ -911,7 +943,7 @@ func (s *Session) acceptEpochFrame(payload []byte) ([]byte, bool) {
 		}
 		return nil, false
 	}
-	return payload[frameHeaderLen:], true
+	return payload[bridgeFrameHeaderLen:], true
 }
 
 func (s *Session) peerLatchAccepts(from string) bool {
