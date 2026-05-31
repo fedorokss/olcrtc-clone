@@ -22,9 +22,16 @@ func (Provider) Issue(ctx context.Context, cfg auth.Config) (auth.Credentials, e
 		return auth.Credentials{}, auth.ErrRoomIDRequired
 	}
 
-	accessToken, err := registerGuest(ctx, cfg.Name)
-	if err != nil {
-		return auth.Credentials{}, fmt.Errorf("register guest: %w", err)
+	var accessToken string
+	var err error
+
+	if cfg.WBToken != "" {
+		accessToken = cfg.WBToken
+	} else {
+		accessToken, err = registerGuest(ctx, cfg.Name)
+		if err != nil {
+			return auth.Credentials{}, fmt.Errorf("register guest: %w", err)
+		}
 	}
 
 	if err := joinRoom(ctx, accessToken, roomID); err != nil {

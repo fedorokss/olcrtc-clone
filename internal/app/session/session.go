@@ -643,6 +643,8 @@ func runOnce(
 			Engine:           cfg.Engine,
 			URL:              cfg.URL,
 			Token:            cfg.Token,
+			WBToken:          cfg.WBToken,
+			WBCookie:         cfg.WBCookie,
 			Liveness:         liveness,
 			Traffic:          traffic,
 			OnSessionOpen: func(sessionID, deviceID string, claims map[string]any) {
