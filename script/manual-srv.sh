@@ -1,11 +1,11 @@
 #!/bin/bash
 set -e
 
-# ID for this deployment
 DEPLOY_ID=$(LC_ALL=C tr -dc 'a-z0-9' </dev/urandom | head -c 8)
 WORK_DIR="/tmp/olcrtc-manual-deploy-$DEPLOY_ID"
 REPO_URL="https://github.com/openlibrecommunity/olcrtc.git"
 BRANCH="master"
+GO_VERSION="1.26.3"
 
 while [[ $# -gt 0 ]]; do
     case $1 in
@@ -24,7 +24,6 @@ echo ""
 echo "[*] Using branch: $BRANCH"
 echo ""
 
-# 1. Install dependencies
 echo "[*] Checking and installing dependencies..."
 if [ "$(id -u)" -eq 0 ]; then
     SUDO=""
@@ -37,48 +36,58 @@ else
     exit 1
 fi
 
-if ! command -v git &> /dev/null || ! command -v go &> /dev/null || ! command -v make &> /dev/null || ! command -v ffmpeg &> /dev/null; then
-    if command -v apt &> /dev/null; then
-        echo "[*] Detected apt (Debian/Ubuntu)"
-        $SUDO apt update
-        $SUDO apt install -y git make ffmpeg curl wget jq
-        # Install modern Go if not present or too old
-        if ! command -v go &> /dev/null || ! go version | grep -q -E 'go1\.2[6-9]'; then
-            echo "[*] Installing Go 1.26..."
-            $SUDO apt install -y golang-go
-            $SUDO go install golang.org/dl/go1.26.0@latest
-            $SUDO ~/go/bin/go1.26.0 download
-            $SUDO cp ~/go/bin/go1.26.0 /usr/local/bin/go
-            export PATH=$PATH:/usr/local/bin
-        fi
-    elif command -v dnf &> /dev/null; then
-        echo "[*] Detected dnf (Fedora/RHEL)"
-        $SUDO dnf install -y git golang make ffmpeg curl wget jq
-    elif command -v pacman &> /dev/null; then
-        echo "[*] Detected pacman (Arch)"
-        $SUDO pacman -Sy --noconfirm git go make ffmpeg curl wget jq
-    else
-        echo "[X] Unsupported package manager. Install git, go, make, ffmpeg manually."
-        exit 1
+if command -v apt &> /dev/null; then
+    echo "[*] Detected apt (Debian/Ubuntu)"
+    $SUDO apt update
+    $SUDO apt install -y git make ffmpeg curl wget jq
+elif command -v dnf &> /dev/null; then
+    echo "[*] Detected dnf (Fedora/RHEL)"
+    $SUDO dnf install -y git make ffmpeg curl wget jq
+elif command -v pacman &> /dev/null; then
+    echo "[*] Detected pacman (Arch)"
+    $SUDO pacman -Sy --noconfirm git make ffmpeg curl wget jq
+else
+    echo "[X] Unsupported package manager. Install git, make, ffmpeg manually."
+    exit 1
+fi
+
+need_go=1
+if command -v go &> /dev/null; then
+    cur=$(go version | awk '{print $3}' | sed 's/^go//')
+    major=${cur%%.*}; rest=${cur#*.}; minor=${rest%%.*}
+    if [ "${major:-0}" -gt 1 ] || { [ "${major:-0}" -eq 1 ] && [ "${minor:-0}" -ge 26 ]; }; then
+        need_go=0
     fi
 fi
 
-# Ensure Go is in PATH if installed locally
+if [ "$need_go" -eq 1 ]; then
+    echo "[*] Installing Go $GO_VERSION..."
+    OS_DL=$(uname -s | tr '[:upper:]' '[:lower:]')
+    ARCH_DL=$(uname -m)
+    case "$ARCH_DL" in
+        x86_64) ARCH_DL="amd64" ;;
+        aarch64|arm64) ARCH_DL="arm64" ;;
+    esac
+    TARBALL="go${GO_VERSION}.${OS_DL}-${ARCH_DL}.tar.gz"
+    curl -fsSL "https://go.dev/dl/${TARBALL}" -o "/tmp/${TARBALL}"
+    $SUDO rm -rf /usr/local/go
+    $SUDO tar -C /usr/local -xzf "/tmp/${TARBALL}"
+    export PATH="/usr/local/go/bin:$PATH"
+fi
+
 if ! command -v go &> /dev/null; then
     if [ -x /usr/local/go/bin/go ]; then
-        export PATH=$PATH:/usr/local/go/bin
-    elif [ -x /usr/local/bin/go ]; then
-        export PATH=$PATH:/usr/local/bin
+        export PATH="/usr/local/go/bin:$PATH"
     else
         echo "[X] Go not found."
         exit 1
     fi
 fi
 
+export PATH="$HOME/go/bin:$PATH"
 if ! command -v mage &> /dev/null; then
     echo "[*] Installing mage..."
     go install github.com/magefile/mage@latest
-    export PATH="$HOME/go/bin:$PATH"
 fi
 
 echo "[+] Dependencies installed"
@@ -217,8 +226,8 @@ fi
 echo ""
 read -p "DNS server [default: 8.8.8.8:53]: " DNS_INPUT
 DNS=${DNS_INPUT:-8.8.8.8:53}
-echo ""
 
+echo ""
 read -p "Use SOCKS5 proxy for egress? (y/N): " USE_PROXY
 SOCKS_PROXY_ADDR=""
 SOCKS_PROXY_PORT=0
@@ -274,6 +283,7 @@ if [ "$TRANSPORT" = "videochannel" ]; then
     read -p "Hardware acceleration (none/nvenc) [default: none]: " VHW_INPUT
     VIDEO_HW=${VHW_INPUT:-none}
 fi
+
 if [ "$TRANSPORT" = "vp8channel" ]; then
     echo ""
     echo "--- VP8channel settings ---"
@@ -282,6 +292,7 @@ if [ "$TRANSPORT" = "vp8channel" ]; then
     read -p "VP8 batch size (frames per tick) [default: 1]: " VP8BATCH_INPUT
     VP8_BATCH=${VP8BATCH_INPUT:-1}
 fi
+
 if [ "$TRANSPORT" = "seichannel" ]; then
     echo ""
     echo "--- SEIchannel settings ---"
@@ -305,7 +316,7 @@ git clone --depth 1 --recurse-submodules --branch "$BRANCH" "$REPO_URL" "$WORK_D
 
 echo "[*] Building OlcRTC..."
 cd "$WORK_DIR"
-~/go/bin/mage build
+mage build
 
 OS=$(uname -s | tr '[:upper:]' '[:lower:]')
 ARCH=$(uname -m)
@@ -313,9 +324,7 @@ case "$ARCH" in
     x86_64) ARCH="amd64" ;;
     aarch64|arm64) ARCH="arm64" ;;
 esac
-
 BIN_PATH="$WORK_DIR/build/olcrtc-${OS}-${ARCH}"
-
 if [ ! -f "$BIN_PATH" ]; then
     echo "[X] Build failed"
     exit 1
@@ -426,6 +435,7 @@ vp8:
   batch_size: $VP8_BATCH
 EOF
 fi
+
 if [ "$TRANSPORT" = "seichannel" ]; then
     cat >> "$CONFIG_FILE" <<EOF
 sei:
@@ -435,6 +445,7 @@ sei:
   ack_timeout_ms: $SEI_ACK
 EOF
 fi
+
 if [ "$TRANSPORT" = "videochannel" ]; then
     cat >> "$CONFIG_FILE" <<EOF
 video:
