@@ -98,7 +98,7 @@ func connectSDKRoom(url, token string, callback *lksdk.RoomCallback) (roomHandle
 		url,
 		token,
 		callback,
-		lksdk.WithAutoSubscribe(false),
+		lksdk.WithAutoSubscribe(true),
 	)
 	if err != nil {
 		return nil, fmt.Errorf("connect to livekit room: %w", err)
@@ -189,11 +189,6 @@ func (s *Session) connectSession(_ context.Context) error {
 					cb(track, nil)
 				}
 			},
-			OnTrackPublished: func(publication *lksdk.RemoteTrackPublication, _ *lksdk.RemoteParticipant) {
-				if publication.Kind() == lksdk.TrackKindVideo {
-					_ = publication.SetSubscribed(true)
-				}
-			},
 		},
 		OnDisconnected: func() {
 			if s.closed.Load() || s.reconnecting.Load() {
@@ -209,6 +204,7 @@ func (s *Session) connectSession(_ context.Context) error {
 	if err != nil {
 		return fmt.Errorf("connect to room: %w", err)
 	}
+
 	s.setRoom(room)
 	if err := s.publishPendingTracks(); err != nil {
 		return err
